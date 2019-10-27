@@ -1,26 +1,19 @@
-from index.index_persistence import load_inverse_file, print_inverse_file
+from queries.index_persistence import load_inverse_file, print_inverse_file
 from nltk import PorterStemmer, word_tokenize
 from nltk.corpus import stopwords
-import string, math, json
+import string, math
 import heapq as hp
 
-def main():
-    index = load_inverse_file("index.json")
-    query = "investigation boundary layer fluids crocco"
-    query_terms, query_term_count = extract_terms(query)
-    terms_dict = {}
-    term_containing_docs = set()
+
+def query(index, input_query, documents):
+    query_terms, query_term_count = extract_terms(input_query)
 
     for term in query_terms:
         if term not in index:
             index[term] = {"idf": 0, "post_list": []}
-        for doc in index[term]["post_list"]:
-            term_containing_docs.add(doc["doc_id"])
 
     doc_similarity = {}
-    dot_product = 0
     module_query = 0
-    module_doc = 0
 
     for term in query_terms:
         idf = index[term]["idf"]
@@ -46,27 +39,11 @@ def main():
         hp.heappush(results, (-cosine_sim, document))
         entry += 1
 
+    data = {"hits": {}}
     for i in range(len(results)):
         r = hp.heappop(results)
-        print("Doc: %s Cosine similitude: %f" % (r[1], -r[0]))
-    '''
-    for doc in term_containing_docs:
-        for term in query_terms:
-            #filtered_doc = next(filter(lambda d: d["doc_id"] == doc, index[term]["post_list"]), None)
-            #if filtered_doc is not None:
-            doc_has_term = len([d for d in index[term]["post_list"] if d.get("doc_id") == doc]) > 0
-            if doc_has_term:
-                idf = index[term]["idf"]
-                query_tf = query_terms[term]/query_term_count
-                query_tf_idf = idf * query_tf
-
-                doc_tf = doc_has_term["tf"]
-                doc_tf_idf = idf * doc_tf
-
-                dot_product += query_tf_idf * doc_tf_idf
-                module_query = query_tf_idf ** 2
-                module_doc = doc_tf_idf ** 2
-    '''
+        data["hits"][r[1]] = {"similarity": -r[0], "text": documents[r[1]]}
+    return data
 
 
 def extract_terms(document):
@@ -93,4 +70,3 @@ def extract_terms(document):
     return terms, word_count
 
 
-main()

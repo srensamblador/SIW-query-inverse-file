@@ -1,29 +1,55 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
+from queries.index_persistence import load_inverse_file, load_documents
+from queries import query_handler as qh
+import json
+import argparse
+
+
+'''
+    Basic web server that listens to GET petitinos at this endpoint:
+        \search?query=XXXXX
+    and returns the matching documents as a JSON response
+'''
+
+index = {}
+documents = {}
 
 
 class mHandler(BaseHTTPRequestHandler):
-    def do_HEAD(self):
+    def _set_headers_(self):
         self.send_response(200)
-        self.send_header("Content-type", "text/html")
+        self.send_header("Content-type", "application/json")
         self.end_headers()
 
     def do_GET(self):
         print(self.path)
-        parsed = parse_qs(urlparse(self.path).query)
+        if self.path.startswith("/search"):
+            parsed = parse_qs(urlparse(self.path).query)
+            print(parsed["query"][0])
+            result = qh.query(index, parsed["query"][0], documents)
+            self._set_headers_()
+            self.wfile.write(bytes(json.dumps(result), "UTF-8"))
 
-        print(parsed)
-        self.respond({"status": 200})
 
-    def respond(self, opts):
-        self.wfile.write(bytes(str(opts), "UTF-8"))
-
-
-def run(server_class=HTTPServer):
-    server_address = ("", 8080)
+def run(args, server_class=HTTPServer):
+    global index, documents
+    server_address = ("", int(args.port))
     httpd = server_class(server_address, mHandler)
-    print("Listening on port 8080")
+    index = load_inverse_file(args.index)  # TF-IDF inverse file
+    documents = load_documents(args.documents)  # Just a simple dictionary to match document_ids with their content
+    print("Listening on port " + args.port)
     httpd.serve_forever()
 
 
-run()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Web server configuration")
+    parser.add_argument("-i", "--index", default="index.json", help="Document collection to queries")
+    parser.add_argument("-d", "--documents", default="cran-1400.txt", help="Corpus of documents")
+    parser.add_argument("-p", "--port", default=8080, help="Port number")
+    args = parser.parse_args()
+    return args
+
+
+run(parse_args())
+

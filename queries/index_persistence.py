@@ -3,20 +3,24 @@ import json
 
 def dump_inverse_file(filename, inverse_file):
     json_data = json.dumps(inverse_file)
-    try:
-        f = open(filename, "w")
+    with open(filename, "w") as f:
         f.write(json_data)
-    except:
-        print("An error has occuring serializing the inverse file")
 
 
 def load_inverse_file(filename):
-    try:
-        f = open(filename)
+    with open(filename, "r") as f:
         inverse_file = json.loads(f.read())
         return inverse_file
-    except:
-        print("An error has ocurring retrieving the inverse file")
+
+
+def load_documents(filename):
+    with open(filename, "r") as f:
+        dict_documents = {}
+        for line in f:
+            split_line = line.split(" ")
+            doc_id, text = split_line[:1][0], " ".join(split_line[1:])
+            dict_documents[doc_id] = text.strip()
+        return dict_documents
 
 
 def print_inverse_file(inverse_file):
