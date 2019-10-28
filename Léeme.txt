@@ -1,0 +1,45 @@
+Consultas contra índice
+Samuel Cifuentes García - UO238524 
+#####################################
+
+PROCESAMIENTO Consultas
+El módulo queries se encarga de la gestión de la consulta. query_handler.py en concreto, mientras que index_persistence se encarga 
+de cargar el índice.
+La función query de query_handler está comentada indicando cada paso pero básicamente lo que hice fue:
+1. Extraer términos de la consulta, tokenizando, stemmizando, eliminando vacías etc, igual que hice al indexar
+2. Si algún término no estaba en el índice lo añado a este con una postlista vacía para sistematizar más fácilmente el cálculo del coseno
+3. Hago un recorrido de todos los términos de la consulta y de los documentos de sus postlista en el índice de modo que puedo calcular 
+el producto matricial de la consulta contra cada documento así como los módulos.
+4. Para cada documento se calcula la similitud del coseno y se introduce en un montículo de prioridad
+5. Se devuelve un diccionario ordenado de documentos en función de su similitud
+
+SERVICIO WEB
+En server.py se implementó un servidor web básico que responde al siguiente Endpoint GET:
+    \search?query=XXX
+donde XXX es la consulta a realizar
+Se puede ejecutar directamente como
+    python -m server.py
+En cuyo caso por defecto usará el puerto 8080, y se usará index.json como índice y cran-1400.txt como set de documentos. El set de documentos
+se usa para relacionar los ids de documentos recuperados desde el índice al procesar la consulta con los textos del documento, de cara a 
+enriquecer la respuesta del servicio.
+Se pueden especificar los siguientes parámetros en la ejecución del servidor:
+    -p o --port: Puerto donde escucha el servidor
+    -i o --index: Fichero que contiene el índice
+    -d o --documents: Colección de documentos correspondiente al índice.
+Un ejemplo de consulta a través del servicio web sería:
+    http://localhost:8080/search?query=what%20similarity%20laws%20must%20be%20obeyed%20when%20constructing%20aeroelastic%20models%20of%20heated%20high%20speed%20aircraft
+Se devuelve un JSON que tendrá la forma:
+"hits":{
+    "I573": {
+        "similarity": 0.77222315546690147,
+        "text": "blablabla bla bla blablabla"
+    },
+    "I329":{
+        ...
+    },
+    ...
+}
+
+CLIENTE WEB
+Finalmente en la carpeta client creé un pequeño html que utiliza AJAX para hacer peticiones contra el servidor y mostrarlas de forma 
+más visual. El cliente asume localhost:8080

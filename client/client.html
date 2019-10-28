@@ -1,37 +1,57 @@
 <!DOCTYPE html>
 <html lnag="en">
-    <head>
-        <title>Query Client</title>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-    </head>
+  <head>
+    <title>Query Client</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+  </head>
 </html>
 
 <script>
-function search(){
+  function search() {
     var httpRequest = new XMLHttpRequest();
-    httpRequest.onreadystatechange = function(){
-        if (this.readyState == 4 && this.status == 200){
-            showResults(this.response)
-        }
+    httpRequest.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        showResults(this.response);
+      }
+    };
+    query = document.getElementById("txt-query").value;
+    httpRequest.open("GET", "http://127.0.0.1:8080/search?query=" + query);
+    httpRequest.send();
+  }
+
+  function showResults(response) {
+    document.getElementById("resultados").innerHTML = "";
+    data = JSON.parse(response);
+    if (Object.keys(data["hits"]).length == 0) {
+      var div = document.createElement("div");
+      div.className = "info";
+      div.innerHTML = "<h3 class='empty_results'>No results</h3>";
+      document.getElementById("resultados").appendChild(div);
+    } else {
+      var div = document.createElement("div");
+      div.className = "info";
+      var html = "";
+      for (var hit in data["hits"]) {
+        html +=
+          "<p class='hit-header'><span class='hit-id'>" + hit + "</span>" +
+          "<span class='hit-sim'>(" + data["hits"][hit]["similarity"] + ")</span></p>" 
+          + "<p class='hit-text'>" + data["hits"][hit]["text"] + "</p>";
+      }
+      div.innerHTML = html;
+      document.getElementById("resultados").appendChild(div);
     }
-    query = document.getElementById("txt-query").value
-    httpRequest.open("GET", "http://127.0.0.1:8080/search?query=" + query)
-    httpRequest.send()
-}
-
-function showResults(response){
-    data = JSON.parse(response)
-    console.log(data)
-}
-
-
+  }
 </script>
 
 <body>
-    <input type="text" id="txt-query"/>
-    <input type="button" id="btn-search" value="Search" onclick="search()" />
-    <ul id="query-results">
-
-    </ul>
+  <div class="search-box">
+    <span class="label">Query:</span>
+    </br>
+    <input type="text" id="txt-query" />
+    </br>
+    <input type="submit" id="btn-search" value="Search" onclick="search()" />
+  </div>
+  <div id="resultados"></div>
 </body>

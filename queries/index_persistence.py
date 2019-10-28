@@ -14,6 +14,9 @@ def load_inverse_file(filename):
 
 
 def load_documents(filename):
+    '''
+        Reads a collection of documents like cran-1400 and returns it as a dictionary
+    '''
     with open(filename, "r") as f:
         dict_documents = {}
         for line in f:

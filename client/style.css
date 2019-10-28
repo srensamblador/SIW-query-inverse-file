@@ -1,0 +1,70 @@
+body{
+    background-color: #313131;
+    font-size: 100%;
+    font-family: 'Open sans', sans-serif;
+    color: lightgray;
+    text-align: center;
+}
+
+.search-box{
+    display: inline-block;
+    width: 80%;
+    padding: 1em 0em;
+}
+
+.search-box>.label{
+    float: left;
+    font-weight: bold;
+    margin-left: 10%;
+}
+
+.search-box>input[type=text]{
+    width: 80%;
+    padding: 0.5em;
+    margin: 0.5em;
+    background-color: #474747;
+    color: lightgray;
+    border: 1px #5e5e5e;
+    border-radius: 4px;
+}
+
+.search-box>input[type="submit"]{
+    background-color: #313131;
+    border: 0.1em solid rgb(36, 179, 36);
+    border-radius: 4px;
+    font-size: 1em;
+    padding: 0.4em;
+    color: rgb(36, 179, 36);
+    float: right;
+    margin: 1em 10% 0em 0em;
+}
+
+#resultados{
+    display: inline-block;
+    width:80%;
+    border: 0.2em solid #474747;
+    padding: 1em;
+}
+
+.info{
+    display: inline-block;
+    width: 80%;
+    border: 1px dotted #5e5e5e;
+    padding: 0.5em 1em;
+}
+
+.hit-header{
+    width: 100%;
+}
+
+.hit-id{
+    font-weight: bold;
+}
+
+.hit-sim{
+    font-style: italic;
+}
+
+.hit-text{
+    text-align: left;
+}

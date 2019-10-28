@@ -20,16 +20,23 @@ class mHandler(BaseHTTPRequestHandler):
     def _set_headers_(self):
         self.send_response(200)
         self.send_header("Content-type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
 
     def do_GET(self):
-        print(self.path)
+        # Listens to route /search, ignores rest
         if self.path.startswith("/search"):
+            # Filters GET request parameters
             parsed = parse_qs(urlparse(self.path).query)
-            if len(parsed) > 0:
-                result = qh.query(index, parsed["query"][0], documents)
-                self._set_headers_()
-                self.wfile.write(bytes(json.dumps(result), "UTF-8"))
+            # Query parameter must have been specified in order to process the query
+            if "query" in parsed and len(parsed["query"]) > 0:
+                self.respond(qh.query(index, parsed["query"][0], documents))                
+            else:
+                self.respond({"hits": {}})
+
+    def respond(self, content):
+        self._set_headers_()
+        self.wfile.write(bytes(json.dumps(content), "UTF-8"))
 
 
 def run(args, server_class=HTTPServer):
@@ -38,7 +45,7 @@ def run(args, server_class=HTTPServer):
     httpd = server_class(server_address, mHandler)
     index = load_inverse_file(args.index)  # TF-IDF inverse file
     documents = load_documents(args.documents)  # Just a simple dictionary to match document_ids with their content
-    print("Listening on port " + args.port)
+    print("Listening on port " + str(args.port))
     httpd.serve_forever()
 
 
