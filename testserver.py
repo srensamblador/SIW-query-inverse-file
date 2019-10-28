@@ -1,7 +1,7 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
-from queries.index_persistence import load_inverse_file, load_documents
-from queries import query_handler as qh
+#from queries.index_persistence import load_inverse_file, load_documents
+#from queries import query_handler as qh
 import json
 import argparse
 
@@ -20,6 +20,7 @@ class mHandler(BaseHTTPRequestHandler):
     def _set_headers_(self):
         self.send_response(200)
         self.send_header("Content-type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
 
     def do_GET(self):
@@ -27,7 +28,11 @@ class mHandler(BaseHTTPRequestHandler):
         if self.path.startswith("/search"):
             parsed = parse_qs(urlparse(self.path).query)
             if len(parsed) > 0:
-                result = qh.query(index, parsed["query"][0], documents)
+                result = {"hits": []}
+                result["hits"].append({"DOC1": {"similarity": 1, "text": "k pasa loko"}})
+                #result["hits"]["DOC1"] = {"similarity": 1, "text": "hola k tal"}
+                result["hits"].append({"DOC2": {"similarity": 0.8, "text": "sample"}})#qh.query(index, parsed["query"][0], documents)
+                #result["hits"]["DOC2"] = {"similarity": 0.85, "text": "k pasa xavales"}
                 self._set_headers_()
                 self.wfile.write(bytes(json.dumps(result), "UTF-8"))
 
@@ -36,9 +41,9 @@ def run(args, server_class=HTTPServer):
     global index, documents
     server_address = ("", int(args.port))
     httpd = server_class(server_address, mHandler)
-    index = load_inverse_file(args.index)  # TF-IDF inverse file
-    documents = load_documents(args.documents)  # Just a simple dictionary to match document_ids with their content
-    print("Listening on port " + args.port)
+    #index = load_inverse_file(args.index)  # TF-IDF inverse file
+    #documents = load_documents(args.documents)  # Just a simple dictionary to match document_ids with their content
+    print("Listening on port " + str(args.port))
     httpd.serve_forever()
 
 
